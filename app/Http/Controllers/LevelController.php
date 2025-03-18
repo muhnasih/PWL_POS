@@ -6,6 +6,7 @@ use App\Models\LevelModel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class LevelController extends Controller
 {
@@ -41,6 +42,8 @@ class LevelController extends Controller
                     csrf_field() . method_field('DELETE') .
                     '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button></form>';
                 return $btn;
+
+                
             })
             ->rawColumns(['aksi']) // memberitahu bahwa kolom aksi adalah html
             ->make(true);
@@ -58,7 +61,7 @@ class LevelController extends Controller
             'title' => 'Tambah level baru'
         ];
 
-       
+
         $activeMenu = 'level'; // set menu yang sedang aktif
 
         return view('level.create', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu]);
@@ -69,9 +72,9 @@ class LevelController extends Controller
     {
         $request->validate([
             // level_kode harus diisi, berupa string, minimal 3 karakter, dan bernilai unik di tabel m_level kolom level_kode
-            'level_kode' => 'required|string|min:3|unique:m_level,level_kode,',
+            'level_kode' => 'required|string|min:3|unique:m_level,level_kode',
             'level_nama' => 'required|string|max:100', // nama harus diisi, berupa string, dan maksimal 100 karakter
-           
+
         ]);
 
         LevelModel::create([
@@ -104,7 +107,7 @@ class LevelController extends Controller
     public function edit(string $id)
     {
         $level = LevelModel::find($id);
-    
+
 
         $breadcrumb = (object) [
             'title' => 'Edit Level',
@@ -139,21 +142,20 @@ class LevelController extends Controller
     }
 
     public function destroy(string $id)
-{
-    $check = LevelModel::find($id);
-    
-    if (!$check) {
-        // Mengecek apakah data level dengan ID yang dimaksud ada atau tidak
-        return redirect('/level')->with('error', 'Data level tidak ditemukan');
-    }
-    
-    try {
-        LevelModel::destroy($id);
-        return redirect('/level')->with('success', 'Data level berhasil dihapus');
-    } catch (\Illuminate\Database\QueryException $e) {
-        // Jika terjadi error ketika menghapus data,  kembali ke halaman dengan pesan error
-        return redirect('/level')->with('error', 'Data level gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
-    }
-}
+    {
+        $check = LevelModel::find($id);
 
+        if (!$check) {
+            // Mengecek apakah data level dengan ID yang dimaksud ada atau tidak
+            return redirect('/level')->with('error', 'Data level tidak ditemukan');
+        }
+
+        try {
+            LevelModel::destroy($id);
+            return redirect('/level')->with('success', 'Data level berhasil dihapus');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Jika terjadi error ketika menghapus data,  kembali ke halaman dengan pesan error
+            return redirect('/level')->with('error', 'Data level gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
+        }
+    }
 }

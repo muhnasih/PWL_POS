@@ -27,10 +27,7 @@
                     <td>{{ $kategori->kategori_nama }}</td>
                 </tr>
                 
-                <tr>
-                    <th>Password</th>
-                    <td>********</td>
-                </tr>
+               
             </table>
             <a href="{{ url('kategori') }}" class="btn btn-sm btn-default mt-2">Kembali</a>
         @endempty

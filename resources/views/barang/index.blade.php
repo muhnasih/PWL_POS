@@ -5,8 +5,8 @@
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
-                <a class="btn btn-sm btn-primary mt-1" href="{{ url('supplier/create') }}">Tambah</a>
-               
+                <a class="btn btn-sm btn-primary mt-1" href="{{ url('barang/create') }}">Tambah</a>
+                
             </div>
         </div>
         <div class="card-body">
@@ -15,26 +15,31 @@
                     {{ session('error') }}
                 </div>
             @endif
-
+            
             @if(session('success'))
                 <div class="alert alert-success">
                     {{ session('success') }}
                 </div>
             @endif
-            <table class="table table-bordered table-striped table-hover table-sm" id="table_supplier">
+
+            
+
+            <table class="table table-bordered table-striped table-hover table-sm" id="table_barang">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Kode supplier</th>
-                        <th>Nama supplier</th>
-                        <th>Alamat supplier</th>
+                        <th>Kode</th>
+                        <th>Nama Barang</th>
+                        <th>Harga Beli</th>
+                        <th>Harga Jual</th>
+                        <th>Kategori</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
             </table>
         </div>
     </div>
-    
+   
 @endsection
 
 @push('css')
@@ -43,18 +48,19 @@
 @push('js')
 <script>
     
-    var dataSupplier;
+    var dataBarang;
         $(document).ready(function () {
-             dataSupplier = $('#table_supplier').DataTable({
-                // serverSide: true, jika ingin menggunakan server side processing
-                serverSide: true,
+             dataBarang = $('#table_barang').DataTable({
+                serverside: true,
+                processing: true,
                 ajax: {
-                    "url": "{{ url('supplier/list') }}",
-                    "dataType": "json",
-                    "type": "POST"
+                    url: "{{ url('barang/list') }}",
+                    type: "POST",
+                    data: function (d) {
+                        d.kategori_id = $('#kategori_id').val();
+                    }
                 },
                 columns: [
-                    // nomor urut dari laravel datatable addIndexColumn()
                     {
                         data: 'DT_RowIndex',
                         className: 'text-center',
@@ -62,31 +68,42 @@
                         searchable: false
                     },
                     {
-                        data: 'supplier_kode',
-                        className: '',
+                        data: 'barang_kode',
                         orderable: true,
                         searchable: true
                     },
                     {
-                        data: 'supplier_nama',
-                        className: '',
+                        data: 'barang_nama',
                         orderable: true,
                         searchable: true
                     },
-
                     {
-                        data: 'supplier_alamat',
-                        className: '',
+                        data: 'harga_beli',
                         orderable: true,
-                        searchable: true
+                        searchable: true,
+                        className: 'text-right'
+                    },
+                    {
+                        data: 'harga_jual',
+                        orderable: true,
+                        searchable: true,
+                        className: 'text-right'
+                    },
+                    {
+                        data: 'kategori_id',
+                        orderable: true,
+                        searchable: true,
+                        className: 'text-right'
                     },
                     {
                         data: 'aksi',
-                        className: '',
                         orderable: false,
                         searchable: false
-                    },]
+                    },
+                ]
             });
+
+           
         });
     </script>
 @endpush

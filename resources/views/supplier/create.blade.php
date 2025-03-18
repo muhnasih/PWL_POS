@@ -28,6 +28,15 @@
                     @enderror
                 </div>
             </div>
+            <div class="form-group row">
+                <label class="col-1 control-label col-form-label">Alamat supplier</label>
+                <div class="col-11">
+                    <input type="text" class="form-control" id="supplier_alamat" name="supplier_alamat" value="{{ old('supplier_alamat') }}" required>
+                    @error('supplier_alamat')
+                    <small class="form-text text-danger">{{ $message }}</small>
+                    @enderror
+                </div>
+            </div>
             
             <div class="form-group row">
                 <label class="col-1 control-label col-form-label"></label>

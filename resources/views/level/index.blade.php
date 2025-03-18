@@ -5,7 +5,8 @@
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
-                <a class="btn btn-sm btn-primary mt-1" href="{{ url('level/create') }}">Tambah</a>
+                <a class="btn btn-sm btn-primary mt-1" href="{{ url('user/create') }}">Tambah</a>
+                
             </div>
         </div>
         <div class="card-body">
@@ -32,15 +33,18 @@
             </table>
         </div>
     </div>
+    
 @endsection
 
 @push('css')
 @endpush
 
 @push('js')
-    <script>
+<script>
+    
+    var dataLevel;
         $(document).ready(function () {
-            var datalevel = $('#table_level').DataTable({
+            dataLevel = $('#table_level').DataTable({
                 // serverSide: true, jika ingin menggunakan server side processing
                 serverSide: true,
                 ajax: {
@@ -75,6 +79,7 @@
                         searchable: false
                     },]
             });
+           
         });
     </script>
 @endpush

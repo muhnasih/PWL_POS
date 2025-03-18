@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\BarangController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\StokController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 
@@ -64,4 +67,37 @@ Route::group(['prefix' => 'supplier'], function () {
     Route::get('/{id}/edit', [SupplierController::class, 'edit']); // menampilkan halaman form edit user
     Route::put('/{id}', [SupplierController::class, 'update']); // menyimpan perubahan data user
     Route::delete('/{id}', [SupplierController::class, 'destroy']); // menghapus data user
+});
+
+Route::group(['prefix' => 'stok'], function () {
+    Route::get('/', [StokController::class, 'index']);      // menampilkan halaman awal user
+    Route::post('/list', [StokController::class, 'list']); // menampilkan data user dalam bentuk json untuk datatables
+    Route::get('/create', [StokController::class, 'create']); // menampilkan halaman form tambah user
+    Route::post('/', [StokController::class, 'store']);    // menyimpan data user baru
+    Route::get('/{id}', [StokController::class, 'show']);  // menampilkan detail user
+    Route::get('/{id}/edit', [StokController::class, 'edit']); // menampilkan halaman form edit user
+    Route::put('/{id}', [StokController::class, 'update']); // menyimpan perubahan data user
+    Route::delete('/{id}', [StokController::class, 'destroy']); // menghapus data user
+});
+
+Route::group(['prefix' => 'barang'], function () {
+    Route::get('/', [BarangController::class, 'index']);      // menampilkan halaman awal user
+    Route::post('/list', [BarangController::class, 'list']); // menampilkan data user dalam bentuk json untuk datatables
+    Route::get('/create', [BarangController::class, 'create']); // menampilkan halaman form tambah user
+    Route::post('/', [BarangController::class, 'store']);    // menyimpan data user baru
+    Route::get('/{id}', [BarangController::class, 'show']);  // menampilkan detail user
+    Route::get('/{id}/edit', [BarangController::class, 'edit']); // menampilkan halaman form edit user
+    Route::put('/{id}', [BarangController::class, 'update']); // menyimpan perubahan data user
+    Route::delete('/{id}', [BarangController::class, 'destroy']); // menghapus data user
+});
+
+Route::group(['prefix' => 'penjualan'], function () {
+    Route::get('/', [PenjualanController::class, 'index']);      // menampilkan halaman awal user
+    Route::post('/list', [PenjualanController::class, 'list']); // menampilkan data user dalam bentuk json untuk datatables
+    Route::get('/create', [PenjualanController::class, 'create']); // menampilkan halaman form tambah user
+    Route::post('/', [PenjualanController::class, 'store']);    // menyimpan data user baru
+    Route::get('/{id}', [PenjualanController::class, 'show']);  // menampilkan detail user
+    Route::get('/{id}/edit', [PenjualanController::class, 'edit']); // menampilkan halaman form edit user
+    Route::put('/{id}', [PenjualanController::class, 'update']); // menyimpan perubahan data user
+    Route::delete('/{id}', [PenjualanController::class, 'destroy']); // menghapus data user
 });
