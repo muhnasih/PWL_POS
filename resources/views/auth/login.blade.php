@@ -9,13 +9,13 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="{{ asset('adminlte/plugins/fontawesome-free/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('Adminlte/plugins/fontawesome-free/css/all.min.css') }}">
     <!-- icheck bootstrap -->
-    <link rel="stylesheet" href="{{ asset('adminlte/plugins/icheck-bootstrap/icheck-bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{ asset('Adminlte/plugins/icheck-bootstrap/icheck-bootstrap.min.css') }}">
     <!-- SweetAlert2 -->
-    <link rel="stylesheet" href="{{ asset('adminlte/plugins/sweetalert2-theme-bootstrap-4/bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('Adminlte/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
     <!-- Theme style -->
-    <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('Adminlte/dist/css/adminlte.min.css') }}">
 </head>
 
 <body class="hold-transition login-page">
@@ -37,8 +37,7 @@
                         <small id="error-username" class="error-text text-danger"></small>
                     </div>
                     <div class="input-group mb-3">
-                        <input type="password" id="password" name="password" class="form-control"
-                            placeholder="Password">
+                        <input type="password" class="form-control" placeholder="Password">
                         <div class="input-group-append">
                             <div class="input-group-text">
                                 <span class="fas fa-lock"></span>
@@ -56,6 +55,10 @@
                         <div class="col-4">
                             <button type="submit" class="btn btn-primary btn-block">Sign In</button>
                         </div>
+                        <div class="text-center mt-2">
+                            <a href="{{ url('register') }}" class="btn btn-secondary btn-sm">Sign Up</a>
+                        </div>
+                    </div>
                         <!-- /.col -->
                     </div>
                 </form>
@@ -66,95 +69,70 @@
     </div>
     <!-- /.login-box -->
     <!-- jQuery -->
-    <script src="{{ asset('adminlte/plugins/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('Adminlte/plugins/jquery/jquery.min.js') }}"></script>
     <!-- Bootstrap 4 -->
-    <script src="{{ asset('adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('Adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <!-- jquery-validation -->
-    <script src="{{ asset('adminlte/plugins/jquery-validation/jquery.validate.min.js') }}"></script>
-    <script src="{{ asset('adminlte/plugins/jquery-validation/additional-methods.min.js') }}"></script>
+    <script src="{{ asset('Adminlte/plugins/jquery-validation/jquery.validate.min.js') }}"></script>
+    <script src="{{ asset('Adminlte/plugins/jquery-validation/additional-methods.min.js') }}"></script>
     <!-- SweetAlert2 -->
-    <script src="{{ asset('adminlte/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+    <script src="{{ asset('Adminlte/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
     <!-- AdminLTE App -->
-    <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
+    <script src="{{ asset('Adminlte/dist/js/adminlte.min.js') }}"></script>
     <script>
         $.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-    }
-});
-
-$(document).ready(function () {
-    $("#form-login").validate({
-        rules: {
-            username: { required: true, minlength: 4, maxlength: 20 },
-            password: { required: true, minlength: 4, maxlength: 20 }
-        },
-        submitHandler: function (form) {
-            // Tampilkan animasi loading sebelum mengirim request
-            Swal.fire({
-                title: "Memeriksa...",
-                text: "Mohon tunggu sebentar",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            $.ajax({
-                url: form.action,
-                type: form.method,
-                data: $(form).serialize(),
-                success: function (response) {
-                    if (response.status) { // Jika login sukses
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Login Berhasil!',
-                            text: response.message,
-                            showConfirmButton: false,
-                            timer: 2000, // Auto close dalam 2 detik
-                            timerProgressBar: true
-                        }).then(function () {
-                            $("body").fadeOut(500, function () {
-                                window.location = response.redirect; // Redirect dengan efek fadeOut
-                            });
-                        });
-                    } else { // Jika gagal
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: response.message,
-                            confirmButtonText: "Coba Lagi",
-                            customClass: {
-                                popup: 'swal-error-popup'
-                            }
-                        });
-                    }
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $(document).ready(function () {
+            $("#form-login").validate({
+                rules: {
+                    username: { required: true, minlength: 4, maxlength: 20 },
+                    password: { required: true, minlength: 5, maxlength: 20 }
                 },
-                error: function () {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Terjadi Kesalahan!',
-                        text: 'Silakan coba lagi nanti.',
-                        confirmButtonText: "OK"
+                submitHandler: function (form) { // ketika valid, maka bagian yg akan dijalankan
+                    $.ajax({
+                        url: form.action,
+                        type: form.method,
+                        data: $(form).serialize(),
+                        success: function (response) {
+                            if (response.status) { // jika sukses
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: response.message,
+                                }).then(function () {
+                                    window.location = response.redirect;
+                                });
+                            } else { // jika error
+                                $('.error-text').text('');
+                                $.each(response.msgField, function (prefix, val) {
+                                    $('#error-' + prefix).text(val[0]);
+                                });
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Terjadi Kesalahan',
+                                    text: response.message
+                                });
+                            }
+                        }
                     });
+                    return false;
+                },
+                errorElement: 'span',
+                errorPlacement: function (error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.input-group').append(error);
+                },
+                highlight: function (element, errorClass, validClass) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function (element, errorClass, validClass) {
+                    $(element).removeClass('is-invalid');
                 }
             });
-            return false;
-        },
-        errorElement: 'span',
-        errorPlacement: function (error, element) {
-            error.addClass('invalid-feedback');
-            element.closest('.input-group').append(error);
-        },
-        highlight: function (element) {
-            $(element).addClass('is-invalid');
-        },
-        unhighlight: function (element) {
-            $(element).removeClass('is-invalid');
-        }
-    });
-});
+        });
     </script>
 </body>
 
