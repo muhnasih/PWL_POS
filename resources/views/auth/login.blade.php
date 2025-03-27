@@ -78,58 +78,83 @@
     <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
     <script>
         $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-        $(document).ready(function () {
-            $("#form-login").validate({
-                rules: {
-                    username: { required: true, minlength: 4, maxlength: 20 },
-                    password: { required: true, minlength: 4, maxlength: 20 }
-                },
-                submitHandler: function (form) { // ketika valid, maka bagian yg akan dijalankan
-                    $.ajax({
-                        url: form.action,
-                        type: form.method,
-                        data: $(form).serialize(),
-                        success: function (response) {
-                            if (response.status) { // jika sukses
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil',
-                                    text: response.message,
-                                }).then(function () {
-                                    window.location = response.redirect;
-                                });
-                            } else { // jika error
-                                $('.error-text').text('');
-                                $.each(response.msgField, function (prefix, val) {
-                                    $('#error-' + prefix).text(val[0]);
-                                });
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Terjadi Kesalahan',
-                                    text: response.message
-                                });
-                            }
-                        }
-                    });
-                    return false;
-                },
-                errorElement: 'span',
-                errorPlacement: function (error, element) {
-                    error.addClass('invalid-feedback');
-                    element.closest('.input-group').append(error);
-                },
-                highlight: function (element, errorClass, validClass) {
-                    $(element).addClass('is-invalid');
-                },
-                unhighlight: function (element, errorClass, validClass) {
-                    $(element).removeClass('is-invalid');
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    }
+});
+
+$(document).ready(function () {
+    $("#form-login").validate({
+        rules: {
+            username: { required: true, minlength: 4, maxlength: 20 },
+            password: { required: true, minlength: 4, maxlength: 20 }
+        },
+        submitHandler: function (form) {
+            // Tampilkan animasi loading sebelum mengirim request
+            Swal.fire({
+                title: "Memeriksa...",
+                text: "Mohon tunggu sebentar",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
-        });
+
+            $.ajax({
+                url: form.action,
+                type: form.method,
+                data: $(form).serialize(),
+                success: function (response) {
+                    if (response.status) { // Jika login sukses
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Login Berhasil!',
+                            text: response.message,
+                            showConfirmButton: false,
+                            timer: 2000, // Auto close dalam 2 detik
+                            timerProgressBar: true
+                        }).then(function () {
+                            $("body").fadeOut(500, function () {
+                                window.location = response.redirect; // Redirect dengan efek fadeOut
+                            });
+                        });
+                    } else { // Jika gagal
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: response.message,
+                            confirmButtonText: "Coba Lagi",
+                            customClass: {
+                                popup: 'swal-error-popup'
+                            }
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan!',
+                        text: 'Silakan coba lagi nanti.',
+                        confirmButtonText: "OK"
+                    });
+                }
+            });
+            return false;
+        },
+        errorElement: 'span',
+        errorPlacement: function (error, element) {
+            error.addClass('invalid-feedback');
+            element.closest('.input-group').append(error);
+        },
+        highlight: function (element) {
+            $(element).addClass('is-invalid');
+        },
+        unhighlight: function (element) {
+            $(element).removeClass('is-invalid');
+        }
+    });
+});
     </script>
 </body>
 
