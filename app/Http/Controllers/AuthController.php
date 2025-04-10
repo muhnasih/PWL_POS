@@ -2,28 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LevelModel;
+use App\Models\UserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Support\Facades\Validator;
+
 
 class AuthController extends Controller
 {
-    // Menampilkan halaman login
     public function login()
     {
-        if (Auth::check()) { // Jika sudah login, arahkan ke home
+        if (Auth::check()) { // jika sudah login, maka redirect ke halaman home
             return redirect('/');
         }
         return view('auth.login');
     }
 
-    // Proses login
     public function postlogin(Request $request)
     {
-        $credentials = $request->only('username', 'password');
-
         if ($request->ajax() || $request->wantsJson()) {
+            $credentials = $request->only('username', 'password');
             if (Auth::attempt($credentials)) {
                 return response()->json([
                     'status' => true,
@@ -36,46 +35,63 @@ class AuthController extends Controller
                 'message' => 'Login Gagal'
             ]);
         }
-
-        if (Auth::attempt($credentials)) {
-            return redirect('/')->with('success', 'Login Berhasil!');
-        }
-
-        return redirect('login')->with('error', 'Login Gagal, cek username atau password!');
+        return redirect('login');
     }
 
-    // Logout user
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('login')->with('success', 'Logout Berhasil!');
+        return redirect('login');
     }
 
-    // Menampilkan form registrasi
-    public function showRegistrationForm()
+    public function register()
     {
-        return view('auth.register');
+        if (Auth::check()) {
+            return redirect('/');
+        }
+
+        $level = LevelModel::select('level_id', 'level_nama')->get();
+
+        return view('auth.register')->with('level', $level);
     }
 
-    // Proses registrasi user
-    public function register(Request $request)
+    public function postRegister(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users', 
-            'email' => 'required|email|unique:users|max:255',
-            'password' => 'required|confirmed|min:6',
-        ]);
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'level_id' => 'required|integer',
+                'username' => 'required|string|min:3|unique:m_user,username',
+                'nama' => 'required|string|max:100',
+                'password' => 'required|min:4'
+            ];
 
-        User::create([
-            'name' => $request->name,
-            'username' => $request->username, // Menyesuaikan dengan format awal
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+            $validator = Validator::make($request->all(), $rules);
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil, silakan login.');
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validasi Gagal',
+                    'msgField' => $validator->errors(),
+                ]);
+            }
+
+            // Simpan user ke database
+            UserModel::create([
+                'level_id' => $request->level_id,
+                'username' => $request->username,
+                'nama' => $request->nama,
+                'password' => bcrypt($request->password) // Enkripsi password
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Registrasi berhasil, silakan login.',
+                'redirect' => url('login') // Redirect ke halaman login
+            ]);
+        }
+
+        return redirect('login');
     }
 }
