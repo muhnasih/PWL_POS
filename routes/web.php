@@ -55,6 +55,8 @@ Route::middleware(['auth'])->group(function() { // artinya semua route di dalam 
         Route::get('/user/{id}/delete_ajax', [UserController::class, 'confirm_ajax']);
         Route::delete('/user/{id}/delete_ajax', [UserController::class, 'delete_ajax']);
         Route::delete('/user/{id}', [UserController::class, 'destroy']);
+        Route::get('/user/import', [UserController::class, 'import']);
+        Route::post('/user/import_ajax', [UserController::class, 'import_ajax']);
     });
 
     Route::middleware(['authorize:ADM1'])->group(function () {
@@ -73,6 +75,8 @@ Route::middleware(['auth'])->group(function() { // artinya semua route di dalam 
         Route::get('/level/{id}/delete_ajax', [LevelController::class, 'confirm_ajax']);
         Route::delete('/level/{id}/delete_ajax', [LevelController::class, 'delete_ajax']);
         Route::delete('/level/{id}', [LevelController::class, 'destroy']);
+        Route::get('/level/import', [LevelController::class, 'import']);
+        Route::post('/level/import_ajax', [LevelController::class, 'import_ajax']);
     });
 
     Route::middleware(['authorize:ADM1,MNG'])->group(function () {

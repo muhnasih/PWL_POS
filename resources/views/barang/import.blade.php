@@ -1,14 +1,11 @@
 <form action="{{ url('/barang/import_ajax') }}" method="POST" id="form-import" enctype="multipart/form-data">
     @csrf
-    <div id="modal-master" class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Import Data Barang</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Import Data Barang</h5>
+            <button type="button" class="close" data-dismiss="modal" arialabel="Close"><span
+                    aria-hidden="true">&times;</span></button>
+        </div>
             <div class="modal-body">
                 <div class="form-group">
                     <label>Download Template</label>
@@ -23,7 +20,6 @@
                     <small id="error-file_barang" class="error-text form-text text-danger"></small>
                 </div>
             </div>
-            
             <div class="modal-footer">
                 <button type="button" data-dismiss="modal" class="btn btn-warning">Batal</button>
                 <button type="submit" class="btn btn-primary">Upload</button>
@@ -31,7 +27,6 @@
         </div>
     </div>
 </form>
-
 <script>
     $(document).ready(function () {
         $("#form-import").validate({
@@ -39,26 +34,27 @@
                 file_barang: {
                     required: true,
                     extension: "xlsx"
-                },
+                }
             },
             submitHandler: function (form) {
-                var formData = new FormData(form); // Meng-handle file dengan FormData
+                var formData = new FormData(form);
 
                 $.ajax({
                     url: form.action,
                     type: form.method,
                     data: formData,
-                    processData: false, // agar file bisa diproses
+                    processData: false,
                     contentType: false,
                     success: function (response) {
-                        if (response.status) {
-                            $('#myModal').modal('hide');
+                         if (response.status) { 
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil',
                                 text: response.message
+                            }).then(() => {
+                                $('#modal-crud').modal('hide'); // Modal ditutup setelah klik OK
+                                dataBarang.ajax.reload(); // Reload data setelah modal ditutup
                             });
-                            tableBarang.ajax.reload();
                         } else {
                             $('.error-text').text('');
                             $.each(response.msgField, function (prefix, val) {
