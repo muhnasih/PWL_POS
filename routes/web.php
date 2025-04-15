@@ -30,14 +30,16 @@ Route::post('login', [AuthController::class, 'postlogin']);
 Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
 
 // Rute untuk Registrasi (Dapat diakses tanpa login)
-Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
+Route::get('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/register', [AuthController::class, 'postRegister']);
+
+// Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware(['auth'])->group(function() { // artinya semua route di dalam group ini harus login dulu
 
     Route::get('/', [WelcomeController::class, 'index']);
 
-    Route::middleware(['authorize:ADM'])->group(function () {
+    Route::middleware(['authorize:ADM1'])->group(function () {
         Route::get('/user', [UserController::class, 'index']);
         Route::post('/user/list', [UserController::class, 'list']);
         Route::get('/user/create', [UserController::class, 'create']);
@@ -55,7 +57,7 @@ Route::middleware(['auth'])->group(function() { // artinya semua route di dalam 
         Route::delete('/user/{id}', [UserController::class, 'destroy']);
     });
 
-    Route::middleware(['authorize:ADM'])->group(function () {
+    Route::middleware(['authorize:ADM1'])->group(function () {
         Route::get('/level', [LevelController::class, 'index']);
         Route::post('/level/list', [LevelController::class, 'list']);
         Route::get('/level/create', [LevelController::class, 'create']);
@@ -73,7 +75,7 @@ Route::middleware(['auth'])->group(function() { // artinya semua route di dalam 
         Route::delete('/level/{id}', [LevelController::class, 'destroy']);
     });
 
-    Route::middleware(['authorize:ADM,MNG'])->group(function () {
+    Route::middleware(['authorize:ADM1,MNG'])->group(function () {
         Route::get('/kategori', [KategoriController::class, 'index']);
         Route::post('/kategori/list', [KategoriController::class, 'list']);
         Route::get('/kategori/create', [KategoriController::class, 'create']);
@@ -91,7 +93,7 @@ Route::middleware(['auth'])->group(function() { // artinya semua route di dalam 
         Route::delete('/kategori/{id}', [KategoriController::class, 'destroy']);
     });
 
-    Route::middleware(['authorize:ADM,MNG,STF'])->group(function () {
+    Route::middleware(['authorize:ADM1,MNG,STF'])->group(function () {
         Route::get('/supplier', [SupplierController::class, 'index']);
         Route::post('/supplier/list', [SupplierController::class, 'list']);
         Route::get('/supplier/create', [SupplierController::class, 'create']);
@@ -109,7 +111,7 @@ Route::middleware(['auth'])->group(function() { // artinya semua route di dalam 
         Route::delete('/supplier/{id}', [SupplierController::class, 'destroy']);
     });
 
-    Route::middleware(['authorize:ADM,MNG,STF'])->group(function () {
+    Route::middleware(['authorize:ADM1,MNG,STF'])->group(function () {
         Route::get('/barang', [BarangController::class, 'index']);
         Route::post('/barang/list', [BarangController::class, 'list']);
         Route::get('/barang/create', [BarangController::class, 'create']);
@@ -125,5 +127,7 @@ Route::middleware(['auth'])->group(function() { // artinya semua route di dalam 
         Route::get('/barang/{id}/delete_ajax', [BarangController::class, 'confirm_ajax']);
         Route::delete('/barang/{id}/delete_ajax', [BarangController::class, 'delete_ajax']);
         Route::delete('/barang/{id}', [BarangController::class, 'destroy']);
+        Route::get('/barang/import', [BarangController::class, 'import']);
+        Route::post('/barang/import_ajax', [BarangController::class, 'import_ajax']);
     });
 });

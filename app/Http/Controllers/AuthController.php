@@ -59,6 +59,7 @@ class AuthController extends Controller
 
     public function postRegister(Request $request)
     {
+        
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
                 'level_id' => 'required|integer',
