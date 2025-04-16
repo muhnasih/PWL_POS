@@ -1,9 +1,9 @@
-<form action="{{ url('/user/import_ajax') }}" method="POST" id="form-import" enctype="multipart/form-data">
+<form action="{{ url('/kategori/import_ajax') }}" method="POST" id="form-import" enctype="multipart/form-data">
     @csrf
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Import Data User</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Import Data Kategori</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -11,15 +11,14 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>Download Template</label>
-                    <a href="{{ asset('template_user.xlsx') }}" class="btn btn-info btn-sm" download>
+                    <a href="{{ asset('template_kategori.xlsx') }}" class="btn btn-info btn-sm" download>
                         <i class="fa fa-file-excel"></i> Download
                     </a>
-                    <small id="error-level_id" class="error-text form-text text-danger"></small>
                 </div>
                 <div class="form-group">
                     <label>Pilih File</label>
-                    <input type="file" name="file_user" id="file_user" class="form-control" required>
-                    <small id="error-file_user" class="error-text form-text text-danger"></small>
+                    <input type="file" name="file_kategori" id="file_kategori" class="form-control" required>
+                    <small id="error-file_kategori" class="error-text form-text text-danger"></small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -34,29 +33,29 @@
 $(document).ready(function() {
     $("#form-import").validate({
         rules: {
-            file_user: {
+            file_kategori: {
                 required: true,
                 extension: "xlsx"
             },
         },
         submitHandler: function(form) {
-            var formData = new FormData(form);
+            var formData = new FormData(form); // Jadikan form ke FormData untuk menghandle file
             $.ajax({
                 url: form.action,
                 type: form.method,
-                data: formData,
-                processData: false,
-                contentType: false,
+                data: formData, // Data yang dikirim berupa FormData
+                processData: false, // setting processData ke false untuk menghandle file
+                contentType: false, // setting contentType ke false untuk menghandle file
                 success: function(response) {
-                    if(response.status){
+                    if(response.status){ // jika sukses
                         $('#myModal').modal('hide');
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil',
                             text: response.message
                         });
-                        dataUser.ajax.reload();
-                    } else {
+                        dataKategori.ajax.reload(); // reload datatable
+                    } else { // jika error
                         $('.error-text').text('');
                         $.each(response.msgField, function(prefix, val) {
                             $('#error-' + prefix).text(val[0]);
@@ -64,8 +63,7 @@ $(document).ready(function() {
                         Swal.fire({
                             icon: 'error',
                             title: 'Terjadi Kesalahan',
-                            text: response.message,
-                            footer: JSON.stringify(response.msgField)
+                            text: response.message
                         });
                     }
                 }
