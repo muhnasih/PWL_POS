@@ -1,86 +1,96 @@
-<form action="{{ url('/level/import_ajax') }}" method="POST" id="form-import" enctype="multipart/form-data">
-    @csrf
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Import Data Level User</h5>
-            <button type="button" class="close" data-dismiss="modal" arialabel="Close"><span
-                    aria-hidden="true">&times;</span></button>
-        </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label>Download Template</label>
-                <a href="{{ asset('template_level.xlsx') }}" class="btn btn-info btn-sm" download>
-                    <i class="fa fa-file-excel"></i> Download
-                </a>
-                <small id="error-kategori_id" class="error-text form-text text-danger"></small>
-            </div>
-            <div class="form-group">
-                <label>Pilih File</label>
-                <input type="file" name="file_level" id="file_level" class="form-control" required>
-                <small id="error-file_level" class="error-text form-text text-danger"></small>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" data-dismiss="modal" class="btn btn-warning">Batal</button>
-            <button type="submit" class="btn btn-primary">Upload</button>
-        </div>
-    </div>
-    </div>
-</form>
-<script>
-    $(document).ready(function () {
-        $("#form-import").validate({
-            rules: {
-                file_level: {
-                    required: true,
-                    extension: "xlsx"
-                }
-            },
-            submitHandler: function (form) {
-                var formData = new FormData(form);
+@extends('layouts.template')
 
-                $.ajax({
-                    url: form.action,
-                    type: form.method,
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        if (response.status) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: response.message
-                            }).then(() => {
-                                $('#modal-crud').modal('hide'); // Modal ditutup setelah klik OK
-                                tableLevel.ajax.reload(); // Reload data setelah modal ditutup
-                            });
-                        } else {
-                            $('.error-text').text('');
-                            $.each(response.msgField, function (prefix, val) {
-                                $('#error-' + prefix).text(val[0]);
-                            });
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Terjadi Kesalahan',
-                                text: response.message
-                            });
-                        }
-                    }
-                });
-                return false;
-            },
-            errorElement: 'span',
-            errorPlacement: function (error, element) {
-                error.addClass('invalid-feedback');
-                element.closest('.form-group').append(error);
-            },
-            highlight: function (element) {
-                $(element).addClass('is-invalid');
-            },
-            unhighlight: function (element) {
-                $(element).removeClass('is-invalid');
-            }
+@section('content')
+    <div class="card card-outline card-primary">
+        <div class="card-header">
+            <h3 class="card-title">{{ $page->title }}</h3>
+            <div class="card-tools">
+                <button onclick="modalAction('{{ url('/level/import') }}')" class="btn btn-sm btn-info mt-1">Import Level</button>
+                <a class="btn btn-sm btn-primary mt-1" href="{{ url('level/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('level/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah
+                    Ajax</button>
+            </div>
+        </div>
+        <div class="card-body">
+            @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
+            <table class="table table-bordered table-striped table-hover table-sm" id="table_level">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Kode Level</th>
+                        <th>Nama Level</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" databackdrop="static"
+        data-keyboard="false" data-width="75%" aria-hidden="true"></div>
+@endsection
+
+@push('css')
+@endpush
+
+@push('js')
+<script>
+    function modalAction(url = '') {
+        $('#myModal').load(url, function () {
+            $('#myModal').modal('show');
         });
+    }
+    var dataLevel;
+        $(document).ready(function () {
+             dataLevel = $('#table_level').DataTable({
+                // serverSide: true, jika ingin menggunakan server side processing
+                serverSide: true,
+                ajax: {
+                    "url": "{{ url('level/list') }}",
+                    "dataType": "json",
+                    "type": "POST"
+                },
+                columns: [
+                    // nomor urut dari laravel datatable addIndexColumn()
+                    {
+                        data: 'DT_RowIndex',
+                        className: 'text-center',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'level_kode',
+                        className: '',
+                        orderable: true,
+                        searchable: true
+                    },
+                    {
+                        data: 'level_nama',
+                        className: '',
+                        orderable: true,
+                        searchable: true
+                    },
+                    {
+                        data: 'aksi',
+                        className: '',
+                        orderable: false,
+                        searchable: false
+                    },]
+            });
+
+        $('#table_level_filter input').unbind().bind().on('keyup', function(e){
+        if(e.keyCode == 13){ // enter key
+            dataLevel.search(this.value).draw();
+        }
     });
+});
 </script>
+@endpush
