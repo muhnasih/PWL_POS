@@ -1,10 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StokController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\BarangController;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\SupplierController;
@@ -244,6 +245,7 @@ Route::middleware(['auth'])->group(function () { //artinya semua route di dalam 
             Route::delete('/{id}', [LevelController::class, 'destroy']); // menghapus data Level
             Route::get('/import', [LevelController::class, 'import']); // menampilkan halaman form import Level
             Route::post('/import_ajax', [LevelController::class, 'import_ajax']); // menyimpan data Level dari file import
+            Route::get('/export_excel', [LevelController::class,'export_excel']); // ajax export excel
         });
     });
 
@@ -266,9 +268,9 @@ Route::middleware(['auth'])->group(function () { //artinya semua route di dalam 
             Route::delete('/{id}', [UserController::class, 'destroy']); // menghapus data user
             Route::get('/import', [UserController::class, 'import']); // menampilkan halaman form import User
             Route::post('/import_ajax', [UserController::class, 'import_ajax']); // menyimpan data User dari file import
+            Route::get('/export_excel', [UserController::class,'export_excel']); // ajax export excel
         });
     });
-
 
     Route::middleware(['authorize:ADM1,MNG'])->group(function () {
         Route::group(['prefix' => 'kategori'], function () {
@@ -289,6 +291,30 @@ Route::middleware(['auth'])->group(function () { //artinya semua route di dalam 
             Route::delete('/{id}', [KategoriController::class, 'destroy']); // menghapus data Kategori
             Route::get('/import', [KategoriController::class, 'import']); // menampilkan halaman form import Kategori
             Route::post('/import_ajax', [KategoriController::class, 'import_ajax']); // menyimpan data Kategori dari file import
+            Route::get('/export_excel', [KategoriController::class,'export_excel']); // ajax export excel
+        });
+    });
+
+    Route::middleware(['authorize:ADM1,MNG,STF'])->group(function(){ 
+        Route::group(['prefix' => 'stok'], function () {
+            Route::get('/', [StokController::class, 'index']); // menampilkan halaman awal Stok
+            Route::post('/list', [StokController::class, 'list']); // menampilkan data Stok dalam bentuk json untuk datatable
+            Route::get('/create', [StokController::class, 'create']); // menampilkan halaman form tambah Stok
+            Route::post("/", [StokController::class, 'store']); // menyimpan data Stok baru
+            Route::get('/create_ajax', [StokController::class, 'create_ajax']); // menampilkan halaman form tambah Stok ajax
+            Route::post('/ajax', [StokController::class, 'store_ajax']); // menyimpan data Stok baru ajax
+            Route::get('/{id}', [StokController::class, 'show']); // menampilkan detail Stok
+            Route::get('/{id}/show_ajax', [StokController::class, 'show_ajax']); // menampilkan detail Stok ajax
+            Route::get('/{id}/edit', [StokController::class, 'edit']); // menampilkan halaman form edit Stok
+            Route::put("/{id}", [StokController::class, 'update']);  // menyimpan perubahan data Stok
+            Route::get('/{id}/edit_ajax', [StokController::class, 'edit_ajax']); // menampilkan halaman form edit Stok ajax
+            Route::put('/{id}/update_ajax', [StokController::class, 'update_ajax']); // menyimpan perubahan data Stok ajax
+            Route::get('/{id}/delete_ajax', [StokController::class, 'confirm_ajax']); // untuk tampilan form confirm delete Stok ajax
+            Route::delete('/{id}/delete_ajax', [StokController::class, 'delete_ajax']); // menghapus data Stok ajax
+            Route::delete('/{id}', [StokController::class, 'destroy']); // menghapus data Stok
+            Route::get('/import', [StokController::class, 'import']); // menampilkan halaman form import Stok
+            Route::post('/import_ajax', [StokController::class, 'import_ajax']); // menyimpan data Stok dari file import
+            Route::get('/export_excel', [StokController::class,'export_excel']); // ajax export excel
         });
     });
 
@@ -311,6 +337,9 @@ Route::middleware(['auth'])->group(function () { //artinya semua route di dalam 
             Route::delete('/{id}', [BarangController::class, 'destroy']); // menghapus data Barang
             Route::get('/import', [BarangController::class, 'import']); // menampilkan halaman form import Barang
             Route::post('/import_ajax', [BarangController::class, 'import_ajax']); // menyimpan data Barang dari file import
+            Route::get('/barang/import', [BarangController::class,'import']); // ajax form upload excel
+            Route::post('/barang/import_ajax', [BarangController::class,'import_ajax']); // ajax import excel
+            Route::get('/export_excel', [BarangController::class,'export_excel']); // ajax export excel
         });
     });
 
@@ -333,6 +362,7 @@ Route::middleware(['auth'])->group(function () { //artinya semua route di dalam 
             Route::delete('/{id}', [SupplierController::class, 'destroy']); // menghapus data Supplier
             Route::get('/import', [SupplierController::class, 'import']); // menampilkan halaman form import Supplier
             Route::post('/import_ajax', [SupplierController::class, 'import_ajax']); // menyimpan data Supplier dari file import
+            Route::get('/export_excel', [SupplierController::class,'export_excel']); // ajax export excel
         });
     });
 });
