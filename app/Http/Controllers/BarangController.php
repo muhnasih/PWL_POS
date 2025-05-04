@@ -4,14 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\BarangModel;
 use App\Models\KategoriModel;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Validator;
+use Yajra\DataTables\Facades\DataTables;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BarangController extends Controller
 {
+    // Menampilkan halaman daftar barang
     public function index()
     {
         $breadcrumb = (object) [
@@ -20,13 +21,16 @@ class BarangController extends Controller
         ];
 
         $page = (object) [
-            'title' => 'Daftar Barang yang terdaftar dalam sistem'
+            'title' => 'Daftar barang yang terdaftar dalam sistem'
         ];
 
-        $activeMenu = 'barang';
+        $activeMenu = 'barang'; // set menu yang sedang aktif
+        
+        // Mengambil semua kategori untuk dropdown
+        //$kategori = KategoriModel::all();
 
-        $kategori = KategoriModel::all();
-
+        // Mengambil semua kategori untuk dropdown
+        $kategori = KategoriModel::select('kategori_id', 'kategori_nama')->get();
         return view('barang.index', [
             'breadcrumb' => $breadcrumb,
             'page' => $page,
@@ -35,38 +39,48 @@ class BarangController extends Controller
         ]);
     }
 
+    // Mengambil data barang dalam bentuk JSON untuk datatables
     public function list(Request $request)
     {
-        $barangs = BarangModel::select('barang_id', 'barang_nama', 'kategori_id', 'harga_beli', 'harga_jual')
+        $barang = BarangModel::select(
+            'barang_id', 
+            'barang_kode', 
+            'barang_nama', 
+            'kategori_id', 
+            'harga_beli', 
+            'harga_jual')
             ->with('kategori');
 
-        if ($request->kategori_id) {
-            $barangs->where('kategori_id', $request->kategori_id);
+        //if ($request->kategori_id) {
+        //    $barang->where('kategori_id', $request->kategori_id);
+        //}
+        $kategori_id = $request->input('filter_kategori'); 
+        if (!empty($kategori_id)) {
+            $barang->where('kategori_id', $kategori_id);
         }
-        return DataTables::of($barangs)
+
+        return DataTables::of($barang)
             ->addIndexColumn()
-            ->addColumn('kategori_nama', function ($barang) {
-                return $barang->kategori ? $barang->kategori->kategori_nama : '-';
-            })
-            ->addColumn('aksi', function ($barang) {
-                //$btn = '<a href="' . url('/barang/' . $barang->barang_id) . '" class="btn btn-info btn-sm">Detail</a> ';
-                //$btn .= '<a href="' . url('/barang/' . $barang->barang_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
-                //$btn .= '<form class="d-inline-block" method="POST" action="' . url('/barang/' . $barang->barang_id) . '">'
-                //    . csrf_field() . method_field('DELETE') .
-                //    '<button type="submit" class="btn btn-danger btn-sm" 
-                //onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button></form>';
+            ->addColumn('aksi', function ($barang) { // menambahkan kolom aksi
+                // $btn = '<a href="' . url('/barang/' . $barang->barang_id) . '" class="btn btn-info btn-sm">Detail</a>';
+                // $btn .= '<a href="' . url('/barang/' . $barang->barang_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a>';
+                // $btn .= '<form class="d-inline-block" method="POST" action="' . url('/barang/' . $barang->barang_id) . '">' .
+                //     csrf_field() . method_field('DELETE') .
+                //     '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button></form>';
                 $btn = '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
-                    '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
-                $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
-                    '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
-                $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
-                    '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
-                return $btn;
+                '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
+            $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
+                '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
+            $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
+                '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
+
+            return $btn;
             })
             ->rawColumns(['aksi'])
             ->make(true);
     }
 
+    // Menampilkan halaman form tambah barang
     public function create()
     {
         $breadcrumb = (object) [
@@ -75,7 +89,7 @@ class BarangController extends Controller
         ];
 
         $page = (object) [
-            'title' => 'Tambah Barang Baru'
+            'title' => 'Tambah barang baru'
         ];
 
         $kategori = KategoriModel::all();
@@ -89,39 +103,43 @@ class BarangController extends Controller
         ]);
     }
 
+    // Menyimpan data barang baru
     public function store(Request $request)
     {
         $request->validate([
+            'barang_kode' => 'required|string|max:100|unique:m_barang,barang_kode',
             'barang_nama' => 'required|string|max:100',
-            'kategori_id' => 'required|exists:m_kategori,kategori_id',
-            'harga_beli' => 'required|numeric|min:0',
-            'harga_jual' => 'required|numeric|min:0',
+            'kategori_id' => 'required|integer|exists:m_kategori,kategori_id',
+            'harga_beli' => 'required|integer|min:0',
+            'harga_jual' => 'required|integer|min:0'
         ]);
 
         BarangModel::create([
+            'barang_kode' => $request->barang_kode,
             'barang_nama' => $request->barang_nama,
             'kategori_id' => $request->kategori_id,
             'harga_beli' => $request->harga_beli,
-            'harga_jual' => $request->harga_jual,
+            'harga_jual' => $request->harga_jual
         ]);
 
         return redirect('/barang')->with('success', 'Data barang berhasil disimpan');
     }
 
+    // Menampilkan detail barang
     public function show(string $id)
     {
         $barang = BarangModel::with('kategori')->find($id);
 
         $breadcrumb = (object) [
-            'title' => 'Detail barang',
-            'list' => ['Home', 'barang', 'Detail']
+            'title' => 'Detail Barang',
+            'list' => ['Home', 'Barang', 'Detail']
         ];
 
         $page = (object) [
             'title' => 'Detail barang'
         ];
 
-        $activeMenu = 'barang'; 
+        $activeMenu = 'barang';
 
         return view('barang.show', [
             'breadcrumb' => $breadcrumb,
@@ -131,12 +149,11 @@ class BarangController extends Controller
         ]);
     }
 
+    // Menampilkan halaman form edit barang
     public function edit(string $id)
     {
         $barang = BarangModel::find($id);
-        if (!$barang) {
-            return redirect('/barang')->with('error', 'Data barang tidak ditemukan');
-        }
+        $kategori = KategoriModel::all();
 
         $breadcrumb = (object) [
             'title' => 'Edit Barang',
@@ -144,10 +161,9 @@ class BarangController extends Controller
         ];
 
         $page = (object) [
-            'title' => 'Edit Barang'
+            'title' => 'Edit barang'
         ];
 
-        $kategori = KategoriModel::all();
         $activeMenu = 'barang';
 
         return view('barang.edit', [
@@ -159,30 +175,34 @@ class BarangController extends Controller
         ]);
     }
 
+    // Menyimpan perubahan data barang
     public function update(Request $request, string $id)
     {
         $request->validate([
+            'barang_kode' => 'required|string|max:100|unique:m_barang,barang_kode,' . $id . ',barang_id',
             'barang_nama' => 'required|string|max:100',
-            'kategori_id' => 'required|exists:m_kategori,kategori_id',
-            'harga_beli' => 'required|numeric|min:0',
-            'harga_jual' => 'required|numeric|min:0'
+            'kategori_id' => 'required|integer|exists:m_kategori,kategori_id',
+            'harga_beli' => 'required|integer|min:0',
+            'harga_jual' => 'required|integer|min:0'
         ]);
 
         BarangModel::find($id)->update([
+            'barang_kode' => $request->barang_kode,
             'barang_nama' => $request->barang_nama,
             'kategori_id' => $request->kategori_id,
             'harga_beli' => $request->harga_beli,
-            'harga_jual' => $request->harga_jual,
+            'harga_jual' => $request->harga_jual
         ]);
 
         return redirect('/barang')->with('success', 'Data barang berhasil diubah');
     }
 
-
+    // Menghapus data barang
     public function destroy(string $id)
     {
-        $barang = BarangModel::find($id);
-        if (!$barang) {
+        $check = BarangModel::find($id);
+
+        if (!$check) {
             return redirect('/barang')->with('error', 'Data barang tidak ditemukan');
         }
 
@@ -190,17 +210,14 @@ class BarangController extends Controller
             BarangModel::destroy($id);
             return redirect('/barang')->with('success', 'Data barang berhasil dihapus');
         } catch (\Illuminate\Database\QueryException $e) {
-            return redirect('/barang')->with(
-                'error',
-                'Data barang gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini'
-            );
+            return redirect('/barang')->with('error', 'Data barang gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
         }
     }
 
     public function create_ajax()
     {
         $kategori = KategoriModel::select('kategori_id', 'kategori_nama')->get();
-
+        
         return view('barang.create_ajax')->with('kategori', $kategori);
     }
 
@@ -208,52 +225,37 @@ class BarangController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                'barang_nama' => 'required|string|max:100',
-                'harga_beli' => 'required|integer',
-                'harga_jual' => 'required|integer',
-                'kategori_id' => 'required|integer'
+                'kategori_id' => ['required', 'integer', 'exists:m_kategori,kategori_id'],
+                'barang_kode' => ['required', 'min:3', 'max:20',  'unique:m_barang,barang_kode'],
+                'barang_nama' => ['required', 'string', 'max:100'],
+                'harga_beli' => ['required', 'numeric'],
+                'harga_jual' => ['required', 'numeric'],
             ];
 
             $validator = Validator::make($request->all(), $rules);
-
+            
             if ($validator->fails()) {
-                $errorMessage = 'Validasi Gagal';
-                if ($validator->errors()->has('barang_kode')) {
-                    $errorMessage = 'Validasi Gagal (Kode Sudah Digunakan)';
-                }
-
                 return response()->json([
                     'status' => false,
-                    'message' => $errorMessage,
+                    'message' => 'Validasi Gagal',
                     'msgField' => $validator->errors(),
                 ]);
             }
 
             BarangModel::create($request->all());
-
             return response()->json([
                 'status' => true,
                 'message' => 'Data barang berhasil disimpan'
             ]);
         }
-
-        return redirect('/');
-    }
-
-    public function show_ajax(string $id)
-    {
-        $barang = BarangModel::find($id);
-        $kategori = KategoriModel::select('kategori_nama')
-            ->where('kategori_id', $barang->kategori_id)
-            ->first();
-
-        return view('barang.show_ajax', ['barang' => $barang, 'kategori' => $kategori]);
+        redirect('/');
     }
 
     public function edit_ajax(string $id)
     {
         $barang = BarangModel::find($id);
         $kategori = KategoriModel::select('kategori_id', 'kategori_nama')->get();
+        
         return view('barang.edit_ajax', ['barang' => $barang, 'kategori' => $kategori]);
     }
 
@@ -261,27 +263,19 @@ class BarangController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
+                'kategori_id' => 'required|integer',
+                'barang_kode' => 'required|string|min:3|unique:m_barang,barang_kode,' . $id . ',barang_id',
                 'barang_nama' => 'required|string|max:100',
-                'harga_beli' => 'required|integer',
-                'harga_jual' => 'required|integer',
-                'kategori_id' => 'required|integer'
+                'harga_beli'  => 'required|integer',
+                'harga_jual'  => 'required|integer'
             ];
-
-            $messages = [
-                'barang_kode.unique' => 'Kode Sudah Digunakan'
-            ];
-
-            $validator = Validator::make($request->all(), $rules, $messages);
-
+            
+            $validator = Validator::make($request->all(), $rules);
+            
             if ($validator->fails()) {
-                $errorMessage = 'Validasi Gagal';
-                if ($validator->errors()->has('barang_kode')) {
-                    $errorMessage = 'Validasi Gagal (Kode Sudah Digunakan)';
-                }
-
                 return response()->json([
                     'status' => false,
-                    'message' => $errorMessage,
+                    'message' => 'Validasi gagal.',
                     'msgField' => $validator->errors()
                 ]);
             }
@@ -289,9 +283,15 @@ class BarangController extends Controller
             $barang = BarangModel::find($id);
             if ($barang) {
                 $barang->update($request->all());
-                return response()->json(['status' => true, 'message' => 'Data barang berhasil diperbarui']);
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Data berhasil diupdate'
+                ]);
             } else {
-                return response()->json(['status' => false, 'message' => 'Data barang tidak ditemukan']);
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Data tidak ditemukan'
+                ]);
             }
         }
         return redirect('/');
@@ -300,11 +300,7 @@ class BarangController extends Controller
     public function confirm_ajax(string $id)
     {
         $barang = BarangModel::find($id);
-        $kategori = KategoriModel::select('kategori_nama')
-            ->where('kategori_id', $barang->kategori_id)
-            ->first();
-
-        return view('barang.confirm_ajax', ['barang' => $barang, 'kategori' => $kategori]);
+        return view('barang.confirm_ajax', ['barang' => $barang]);
     }
 
     public function delete_ajax(Request $request, $id)
@@ -312,18 +308,11 @@ class BarangController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             $barang = BarangModel::find($id);
             if ($barang) {
-                try {
-                    $barang->delete();
-                    return response()->json([
-                        'status' => true,
-                        'message' => 'Data berhasil dihapus'
-                    ]);
-                } catch (\Illuminate\Database\QueryException $e) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'Data tidak dapat dihapus karena masih digunakan di tabel lain.'
-                    ]);
-                }
+                $barang->delete();
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Data berhasil dihapus'
+                ]);
             } else {
                 return response()->json([
                     'status' => false,
@@ -335,105 +324,129 @@ class BarangController extends Controller
     }
 
     public function import()
-    {
-        return view('barang.import');
-    }
+{
+    return view('barang.import');
+}
 
-    public function import_ajax(Request $request)
-    {
-        if ($request->ajax() || $request->wantsJson()) {
-            $rules = [
-                // validasi file harus xls atau xlsx, max 1MB
-                'file_barang' => ['required', 'mimes:xlsx', 'max:1024']
-            ];
-            $validator = Validator::make($request->all(), $rules);
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Validasi Gagal',
-                    'msgField' => $validator->errors()
-                ]);
-            }
+public function import_ajax(Request $request)
+{
+    if ($request->ajax() || $request->wantsJson()) {
 
+        $rules = [
+            // Validasi file harus xlsx, maksimal 1MB
+            'file_barang' => ['required', 'mimes:xlsx', 'max:1024']
+        ];
 
-            $file = $request->file('file_barang');
+        $validator = Validator::make($request->all(), $rules);
 
-            $reader = IOFactory::createReader('Xlsx'); // load reader file excel
-            $reader->setReadDataOnly(true); // hanya membaca data
-            $spreadsheet = $reader->load($file->getRealPath()); // load file excel
-            $sheet = $spreadsheet->getActiveSheet(); // ambil sheet yang aktif
-            $data = $sheet->toArray(null, false, true, true); // ambil data excel
-            $insert = [];
-            if (count($data) > 1) { // jika data lebih dari 1 baris
-                foreach ($data as $baris => $value) {
-                    if ($baris > 1) { // baris ke 1 adalah header, maka lewati
-                        $insert[] = [
-                            'kategori_id' => $value['A'],
-                            'barang_nama' => $value['B'],
-                            'harga_beli' => $value['C'],
-                            'harga_jual' => $value['D'],
-                            'created_at' => now(),
-                        ];
-                    }
-                }
-                if (count($insert) > 0) {
-                    // insert data ke database, jika data sudah ada, maka diabaikan
-                    BarangModel::insertOrIgnore($insert);
-                }
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Data berhasil diimport'
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Tidak ada data yang diimport'
-                ]);
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'status'   => false,
+                'message'  => 'Validasi Gagal',
+                'msgField' => $validator->errors()
+            ]);
         }
-        return redirect('/');
+
+        // Ambil file dari request
+        $file = $request->file('file_barang');
+
+        // Membuat reader untuk file excel dengan format Xlsx
+        $reader = IOFactory::createReader('Xlsx');
+        $reader->setReadDataOnly(true); // Hanya membaca data saja
+
+        // Load file excel
+        $spreadsheet = $reader->load($file->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet(); // Ambil sheet yang aktif
+
+        // Ambil data excel sebagai array
+        $data = $sheet->toArray(null, false, true, true);
+        $insert = [];
+
+        // Pastikan data memiliki lebih dari 1 baris (header + data)
+        if (count($data) > 1) {
+            foreach ($data as $baris => $value) {
+                if ($baris > 1) { // Baris pertama adalah header, jadi lewati
+                    $insert[] = [
+                        'kategori_id' => $value['A'],
+                        'barang_kode' => $value['B'],
+                        'barang_nama' => $value['C'],
+                        'harga_beli'  => $value['D'],
+                        'harga_jual'  => $value['E'],
+                        'created_at'  => now(),
+                    ];
+                }
+            }
+
+            if (count($insert) > 0) {
+                // Insert data ke database, jika data sudah ada, maka diabaikan
+                BarangModel::insertOrIgnore($insert);
+            }
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Data berhasil diimport'
+            ]);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Tidak ada data yang diimport'
+            ]);
+        }
     }
+
+    return redirect('/');
+    }
+
     public function export_excel()
     {
-        // ambil data barang yang akan di export
-        $barang = BarangModel::select('kategori_id',  'barang_nama', 'harga_beli', 'harga_jual')
-            ->orderBy('kategori_id')
-            ->with('kategori')
-            ->get();
-        // load library excel
+        //Ambil value barang yang akan diexport
+        $barang = BarangModel::select(
+            'kategori_id',
+            'barang_kode',
+            'barang_nama',
+            'harga_beli',
+            'harga_jual'
+        )
+        ->orderBy('kategori_id')
+        ->with('kategori')
+        ->get();
+
+        //load library excel
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();   // ambil sheet yang aktif
+        $sheet = $spreadsheet->getActiveSheet(); //ambil sheet aktif
 
         $sheet->setCellValue('A1', 'No');
-        $sheet->setCellValue('B1', 'Nama Barang');
-        $sheet->setCellValue('C1', 'Harga Beli');
-        $sheet->setCellValue('D1', 'Harga Jual');
-        $sheet->setCellValue('E1', 'Kategori');
-        $sheet->getStyle('A1:F1')->getFont()->setBold(true);   // bold header
+        $sheet->setCellValue('B1', 'Kode Barang');
+        $sheet->setCellValue('C1', 'Nama Barang');
+        $sheet->setCellValue('D1', 'Harga Beli');
+        $sheet->setCellValue('E1', 'Harga Jual');
+        $sheet->setCellValue('F1', 'Kategori');
 
-        $no = 1;             // nomor data dimulai dari 1
-        $baris = 2;          // baris data dimulai dari baris ke 2
+        $sheet->getStyle('A1:F1')->getFont()->setBold(true); // Set header bold
+
+        $no = 1; //Nomor value dimulai dari 1
+        $baris = 2; //Baris value dimulai dari 2
         foreach ($barang as $key => $value) {
             $sheet->setCellValue('A' . $baris, $no);
-            $sheet->setCellValue('B' . $baris, $value->barang_nama);
-            $sheet->setCellValue('C' . $baris, $value->harga_beli);
-            $sheet->setCellValue('D' . $baris, $value->harga_jual);
-            $sheet->setCellValue('E' . $baris, $value->kategori->kategori_nama); // ambil nama kategori
-            $baris++;
+            $sheet->setCellValue('B' . $baris, $value->barang_kode);
+            $sheet->setCellValue('C' . $baris, $value->barang_nama);
+            $sheet->setCellValue('D' . $baris, $value->harga_beli);
+            $sheet->setCellValue('E' . $baris, $value->harga_jual);
+            $sheet->setCellValue('F' . $baris, $value->kategori->kategori_nama); //ambil nama kategori
             $no++;
+            $baris++;
         }
 
-        foreach (range('A', 'E') as $columnID) {
-            $sheet->getColumnDimension($columnID)->setAutoSize(true); // set auto size untuk kolom
+        foreach (range('A', 'F') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true); //set auto size untuk kolom
         }
 
-        $sheet->setTitle('Data Barang'); // set title sheet
-
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $filename = 'Data Barang ' . date('Y-m-d H:i:s') . '.xlsx';
+        $sheet->setTitle('Data Barang'); //set judul sheet
+        $writer = IOFactory ::createWriter($spreadsheet, 'Xlsx'); //set writer
+        $filename = 'Data_Barang' . date('Y-m-d_H-i-s') . '.xlsx'; //set nama file
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
         header('Cache-Control: max-age=1');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -441,23 +454,29 @@ class BarangController extends Controller
         header('Cache-Control: cache, must-revalidate');
         header('Pragma: public');
 
-        $writer->save('php://output');
-        exit;
+        $writer->save('php://output'); //simpan file ke output
+        exit; //keluar dari scriptA
+    } // end function export_excel
+
+    public function export_pdf(){
+        $barang = BarangModel::select(
+            'kategori_id',
+            'barang_kode',
+            'barang_nama',
+            'harga_jual',
+            'harga_beli'
+        )
+        ->orderBy('kategori_id')
+        ->orderBy('barang_kode')
+        ->with('kategori')
+        ->get();
+
+        // use Barryvdh\DomPDF\Facade\Pdf;
+        $pdf = PDF::loadView('barang.export_pdf', ['barang' => $barang]);
+        $pdf->setPaper('A4', 'portrait'); // set ukuran kertas dan orientasi
+        $pdf->setOption("isRemoteEnabled", true); // set true jika ada gambar dari url
+        $pdf->render(); // render pdf
+
+        return $pdf->stream('Data Barang '.date('Y-m-d H-i-s').'.pdf');
     }
-
-    public function export_pdf()
-    {
-        $barang = BarangModel::select('kategori_id', 'barang_nama', 'harga_beli', 'harga_jual')
-            ->orderBy('kategori_id')
-            ->with('kategori')
-            ->get();
-
-        $pdf = Pdf::loadView('barang.export_pdf', ['barang' => $barang]);
-        $pdf->setPaper('a4', 'portrait'); // set ukuran kertas dan orientasi
-        $pdf->setOption('isRemoteEnabled', true); // set true jika ada gambar dari url
-        $pdf->render();
-
-        return $pdf->stream('Data Barang ' . date('Y-m-d H:i:s') . '.pdf');
-    }
-
 }

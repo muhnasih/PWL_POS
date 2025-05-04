@@ -6,32 +6,32 @@
         <h3 class="card-title">{{ $page->title }}</h3>
     </div>
     <div class="card-body">
-        @if ($penjualan)
+        @empty($penjualan)
+            <div class="alert alert-danger alert-dismissible">
+                <h5><i class="icon fas fa-ban"></i> Kesalahan!</h5>
+                Data yang Anda cari tidak ditemukan.
+            </div>
+        @else
             <table class="table table-bordered table-striped table-hover table-sm">
                 <tr>
                     <th>ID</th>
-                    <td>{{ $penjualan->id }}</td>
+                    <td>{{ $penjualan->penjualan_id }}</td>
+                </tr>
+                <tr>
+                    <th>Kode</th>
+                    <td>{{ $penjualan->penjualan_kode }}</td>
+                </tr>
+                <tr>
+                    <th>Pembeli</th>
+                    <td>{{ $penjualan->pembeli }}</td>
                 </tr>
                 <tr>
                     <th>Tanggal</th>
-                    <td>{{ $penjualan->tanggal }}</td>
-                </tr>
-                <tr>
-                    <th>Pelanggan</th>
-                    <td>{{ $penjualan->pelanggan }}</td>
-                </tr>
-                <tr>
-                    <th>Total</th>
-                    <td>Rp {{ number_format($penjualan->total, 0, ',', '.') }}</td>
+                    <td>{{ $penjualan->penjualan_tanggal }}</td>
                 </tr>
             </table>
-        @else
-            <div class="alert alert-danger">
-                <h5><i class="icon fas fa-ban"></i> Kesalahan!</h5>
-                Data tidak ditemukan.
-            </div>
-        @endif
-
+        @endempty
+        
         <a href="{{ url('penjualan') }}" class="btn btn-sm btn-default mt-2">Kembali</a>
     </div>
 </div>

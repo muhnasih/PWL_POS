@@ -8,25 +8,33 @@
     <div class="card-body">
         <form method="POST" action="{{ url('penjualan') }}" class="form-horizontal">
             @csrf
-
             <div class="form-group row">
-                <label class="col-2 col-form-label">Tanggal</label>
+                <label class="col-2 control-label col-form-label">Kode</label>
                 <div class="col-10">
-                    <input type="date" class="form-control" name="tanggal" value="{{ old('tanggal') }}" required>
+                    <input type="text" class="form-control" name="penjualan_kode" value="{{ old('penjualan_kode') }}" required>
+                    @error('penjualan_kode')
+                        <small class="form-text text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
             </div>
 
             <div class="form-group row">
-                <label class="col-2 col-form-label">Pelanggan</label>
+                <label class="col-2 control-label col-form-label">Pembeli</label>
                 <div class="col-10">
-                    <input type="text" class="form-control" name="pelanggan" value="{{ old('pelanggan') }}" required>
+                    <input type="text" class="form-control" name="pembeli" value="{{ old('pembeli') }}" required>
+                    @error('pembeli')
+                        <small class="form-text text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
             </div>
 
             <div class="form-group row">
-                <label class="col-2 col-form-label">Total</label>
+                <label class="col-2 control-label col-form-label">Tanggal</label>
                 <div class="col-10">
-                    <input type="number" class="form-control" name="total" value="{{ old('total') }}" required min="0">
+                    <input type="datetime-local" class="form-control" name="penjualan_tanggal" required>
+                    @error('penjualan_tanggal')
+                        <small class="form-text text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
             </div>
 
