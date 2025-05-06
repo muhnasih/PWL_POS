@@ -3,43 +3,40 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\UserModel;
+use App\Models\PenjualanModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-
-class RegisterController extends Controller
+class PenjualanController extends Controller
 {
-    public function __invoke(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required',
-            'nama' => 'required',
-            'password' => 'required|min:6|confirmed',
-            'level_id' => 'required',
+            'user_id' => 'required',
+            'pembeli' => 'required',
+            'penjualan_kode' => 'required',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-
         ]);
 
         //if validations fails
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-
-        //create user
-        $user = UserModel::create([
-            'username' => $request->username,
-            'nama' => $request->nama,
-            'password' => bcrypt($request->password),
-            'level_id' => $request->level_id,
+        
+        //create penjualan
+        $penjualan = PenjualanModel::create([
+            'user_id' => $request->user_id,
+            'pembeli' => $request->pembeli,
+            'penjualan_kode' => $request->penjualan_kode,
+            'penjualan_tanggal' => now(),
             'image' => $request->image->hashName()
         ]);
 
         //return response JSON user is created
-        if ($user) {
+        if ($penjualan) {
             return response()->json([
                 'success' => true,
-                'user' => $user,
+                'penjualan' => $penjualan,
             ], 201);
         }
 
@@ -47,5 +44,10 @@ class RegisterController extends Controller
         return response()->json([
             'success' => false,
         ], 409);
+    }
+
+    public function show(PenjualanModel $penjualan)
+    {
+        return $penjualan;
     }
 }

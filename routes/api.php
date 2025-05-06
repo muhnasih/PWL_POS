@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::post('/register', App\Http\Controllers\Api\RegisterController::class)->name('register');
+Route::post('/register1', App\Http\Controllers\Api\RegisterController::class)->name('register1');
 Route::post('/login', App\Http\Controllers\Api\LoginController::class)->name('login');
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
@@ -43,7 +44,6 @@ Route::put('kategori/{kategori}', [KategoriController::class, 'update']);
 Route::delete('kategori/{kategori}', [KategoriController::class, 'destroy']);
 
 use App\Http\Controllers\Api\BarangController;
-
 Route::get('barang', [BarangController::class, 'index']);
 Route::post('barang', [BarangController::class, 'store']);
 Route::get('barang/{barang}', [BarangController::class, 'show']);
@@ -51,17 +51,12 @@ Route::put('barang/{barang}', [BarangController::class, 'update']);
 Route::delete('barang/{barang}', [BarangController::class, 'destroy']);
 
 use App\Http\Controllers\Api\SupplierController;
-
 Route::get('supplier', [SupplierController::class, 'index']);
 Route::post('supplier', [SupplierController::class, 'store']);
 Route::get('supplier/{supplier}', [SupplierController::class, 'show']);
 Route::put('supplier/{supplier}', [SupplierController::class, 'update']);
 Route::delete('supplier/{supplier}', [SupplierController::class, 'destroy']);
 
-
-
-
-
-
-
-
+use App\Http\Controllers\Api\PenjualanController;
+Route::post('/penjualan', [PenjualanController::class, 'store']);
+Route::get('/penjualan/{penjualan}', [PenjualanController::class, 'show']);
